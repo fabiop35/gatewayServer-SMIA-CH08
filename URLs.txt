@@ -1,0 +1,19 @@
+
+#Call using Spring Cloud Gateway
+#@RequestMapping(value="v1/organization")
+#@RequestMapping(value="/{organizationId}")
+
+#Automatic mapping
+curl http://localhost:8072/organization-service/v1/organization/optima
+
+#Manual Mapping
+curl http://localhost:8072/organization/v1/organization/optima
+
+#Licensing service
+curl http://localhost:8072/licensing-service/v1/organization/Optima/license/
+
+curl -H "tmx-correlation-id:TEST-CORRELATION-ID" http://localhost:8072/licensing-service/v1/organization/Optima/license/
+
+#Availables Routes
+http://localhost:8072/actuator/gateway/routes
+
