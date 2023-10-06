@@ -12,11 +12,14 @@ import org.springframework.web.server.ServerWebExchange;
 
 import reactor.core.publisher.Mono;
 
+import org.json.JSONObject;
+import org.apache.commons.codec.binary.Base64;
+
 @Order(1)
 @Component
 public class TrackingFilter implements GlobalFilter {
 
-   private static final Logger logger = LoggerFactory.getLogger(TrackingFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(TrackingFilter.class);
 
     @Autowired
     FilterUtils filterUtils;
@@ -32,6 +35,7 @@ public class TrackingFilter implements GlobalFilter {
             exchange = filterUtils.setCorrelationId(exchange, correlationID);
             logger.info("tmx-correlation-id generated in tracking filter: {}.", correlationID);
         }
+        logger.info("###Parsing Custom Field username: The authentication name  from the token is : {} ", getUsername(requestHeaders));
 
         return chain.filter(exchange);
     }
@@ -46,6 +50,31 @@ public class TrackingFilter implements GlobalFilter {
 
     private String generateCorrelationId() {
         return java.util.UUID.randomUUID().toString();
+    }
+
+    private JSONObject decodeJWT(String JWTToken) {
+        String[] split_string = JWTToken.split("\\.");
+        String base64EncodedBody = split_string[1];
+        Base64 base64Url = new Base64(true);
+        String body = new String(base64Url.decode(base64EncodedBody));
+        JSONObject jsonObj = new JSONObject(body);
+        return jsonObj;
+    }
+
+    private String getUsername(HttpHeaders requestHeaders) {
+        logger.info("~~~>getUsername.JWT<~~~");
+        String username = "";
+        if (filterUtils.getAuthToken(requestHeaders) != null) {
+            String authToken = filterUtils.getAuthToken(requestHeaders).replace("Bearer ", "");
+            JSONObject jsonObj = decodeJWT(authToken);
+            try {
+                username = jsonObj.getString("preferred_username");
+            } catch (Exception e) {
+                logger.debug(e.getMessage());
+            }
+        }
+        logger.info("~~~>username: {}", username);
+        return username;
     }
 
 }
