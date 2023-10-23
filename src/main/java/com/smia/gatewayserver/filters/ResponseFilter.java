@@ -24,10 +24,12 @@ public class ResponseFilter {
             return chain.filter(exchange).then(Mono.fromRunnable(() -> {
                 HttpHeaders requestHeaders = exchange.getRequest().getHeaders();
                 String correlationId = filterUtils.getCorrelationId(requestHeaders);
+                String authToken = filterUtils.getAuthToken(requestHeaders);
                 logger.debug("DEBUG.Adding the correlation id to the outbound headers. {}", correlationId);
                 logger.info("INFO.Adding the correlation id to the outbound headers. {}", correlationId);
                 exchange.getResponse().getHeaders().add(FilterUtils.CORRELATION_ID, correlationId);
                 logger.debug("Completing outgoing request for {}.", exchange.getRequest().getURI());
+                exchange.getResponse().getHeaders().add(FilterUtils.AUTH_TOKEN, authToken);
             }));
         };
     }
